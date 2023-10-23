@@ -10,59 +10,80 @@
     .dark {
         filter: invert() hue-rotate(180deg);
     }
-    #map {
-        width: 100%;
-        height: 300px;
-    }
     #cont {
-        height: 245px;
-        width: 100%;
+        position: absolute;
+        height: 575px;
+        width: 260px;
+        left: 77.5%;
         border: 6px solid black;
         font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
         font-weight: 10;
-        text-align: center;
+    }
+    #li {
+        position: absolute;
+        top: 30%;
+        left: -3%;
+    }
+    #i {
+        font-weight: 400;
+        position: absolute;
+        left: 19%;
+        top: -70%;
+        font-size: 40px;
     }
 </style>
 <body>
-    <div id="map"></div>
     <div id="cont">
-        <h1>ISS Tracker</h1>
-        <ul>
-            <li>Velocity: <span id="v"></span> km/h</li>
-            <li>City: <span id="c"></span></li>
-            <li>State: <span id="s"></span></li>
-            <li>Country: <span id="co"></span></li>
-        </ul>
+        <div id="li">
+            <H1 id="i">ISS Tracker</H1>
+            <ul>
+                <li>Velocity : <span id="v"></span></li>
+                <br>
+                <li>City : <span id="c"></span></li>
+                <br>
+                <li>State : <span id="s"></span></li>
+                <br>
+                <li>Country : <span id="co"></span></li>
+            </ul>
+        </div>
     </div>
+    <div id="map" style="width: 925px;height: 600px;"></div>
 </body>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
     const map = L.map('map').setView([0, 0], 3);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    const issIcon = L.divIcon({
+
+    const iss = L.divIcon({
         className: 'custom-marker',
         html: '<img src="iss.svg" width="40" height="40" alt="ISS">',
         iconSize: [30, 30]
     });
-    const issMarker = L.marker([0, 0], { icon: issIcon }).addTo(map);
+    const issmark = L.marker([0, 0], { icon: iss }).addTo(map);
     const polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
 
     function update() {
         fetch("https://api.wheretheiss.at/v1/satellites/25544")
             .then(response => response.json())
             .then(data => {
-                issMarker.setLatLng([data.latitude, data.longitude]);
+                issmark.setLatLng([data.latitude, data.longitude]);
                 map.setView([data.latitude, data.longitude]);
                 const latlngs = polyline.getLatLngs();
                 latlngs.push([data.latitude, data.longitude]);
                 polyline.setLatLngs(latlngs);
+                polyline.bindPopup("Path taken by ISS")
+                polyline.on("click",function(){
+                    polyline.openPopup()
+                })
                 document.getElementById("v").textContent = data.velocity + " km/h";
-                fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + data.latitude + '&lon=' + data.longitude)
+
+                
+                fetch(`https://photon.komoot.io/reverse?lon=${data.longitude}&lat=${data.latitude}`)
                     .then(response => response.json())
                     .then(data => {
-                        document.getElementById("c").textContent = data.address.city;
-                        document.getElementById("s").textContent = data.address.state;
-                        document.getElementById("co").textContent = data.address.country;
+                        document.getElementById("c").innerText = data.features[0].properties.city || '';
+                        document.getElementById("s").innerText = data.features[0].properties.state || '';
+                        document.getElementById("co").innerText= data.features[0].properties.country || '';
                     });
             });
     }
