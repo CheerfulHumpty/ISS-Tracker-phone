@@ -10,84 +10,47 @@
     .dark {
         filter: invert() hue-rotate(180deg);
     }
+    #map {
+        width: 100%;
+        height: 300px;
+    }
     #cont {
-        position: absolute;
-        height: 575px;
-        width: 260px;
-        left: 77.5%;
+        width: 100%;
         border: 6px solid black;
         font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
         font-weight: 10;
-    }
-    #li {
-        position: absolute;
-        top: 30%;
-        left: -3%;
-    }
-    #i {
-        font-weight: 400;
-        position: absolute;
-        left: 19%;
-        top: -70%;
-        font-size: 40px;
-    }
-    #map {
-        width: 100%; /* Ensure the map takes up the full width of the screen */
-        height: 300px; /* Adjust the height as needed */
-    }
-
-    @media (max-width: 600px) {
-        /* Apply these styles when the screen width is 600px or less (typical phone size) */
-        #cont {
-            width: 100%; /* Make the container full-width */
-            left: 0; /* Remove the absolute positioning */
-            border: none; /* Remove the border */
-        }
-        #li {
-            top: 0; /* Adjust top position */
-        }
-        #i {
-            font-size: 24px; /* Reduce the font size */
-            top: -30%; /* Adjust the top position */
-        }
+        text-align: center;
     }
 </style>
 <body>
-    <div id="map" style="width: 100%; height: 300px;"></div>
+    <div id="map"></div>
     <div id="cont">
-        <div id="li">
-            <h1 id="i">ISS Tracker</h1>
-            <ul>
-                <li>Velocity : <span id="v"></span></li>
-                <br>
-                <li>City : <span id="c"></span></li>
-                <br>
-                <li>State : <span id="s"></span></li>
-                <br>
-                <li>Country : <span id="co"></span></li>
-            </ul>
-        </div>
+        <h1>ISS Tracker</h1>
+        <ul>
+            <li>Velocity: <span id="v"></span> km/h</li>
+            <li>City: <span id="c"></span></li>
+            <li>State: <span id="s"></span></li>
+            <li>Country: <span id="co"></span></li>
+        </ul>
     </div>
 </body>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
     const map = L.map('map').setView([0, 0], 3);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        //className: "dark"
-    }).addTo(map);
-    const iss = L.divIcon({
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const issIcon = L.divIcon({
         className: 'custom-marker',
         html: '<img src="iss.svg" width="40" height="40" alt="ISS">',
         iconSize: [30, 30]
     });
-    const issmark = L.marker([0, 0], { icon: iss }).addTo(map);
+    const issMarker = L.marker([0, 0], { icon: issIcon }).addTo(map);
     const polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
 
     function update() {
         fetch("https://api.wheretheiss.at/v1/satellites/25544")
             .then(response => response.json())
             .then(data => {
-                issmark.setLatLng([data.latitude, data.longitude]);
+                issMarker.setLatLng([data.latitude, data.longitude]);
                 map.setView([data.latitude, data.longitude]);
                 const latlngs = polyline.getLatLngs();
                 latlngs.push([data.latitude, data.longitude]);
@@ -103,6 +66,6 @@
             });
     }
     update();
-    setInterval(update, 500);
+    setInterval(update, 5000);
 </script>
 </html>
